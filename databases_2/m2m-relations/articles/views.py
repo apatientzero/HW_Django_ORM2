@@ -1,15 +1,18 @@
-from django.views.generic import ListView
 from django.shortcuts import render
-
-from articles.models import Article
+from .models import Article
 
 
 def articles_list(request):
-    template = 'articles/news.html'
-    context = {}
-
-    # используйте этот параметр для упорядочивания результатов
-    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.query.QuerySet.order_by
-    ordering = '-published_at'
-
+    template = 'articles/articles_list.html'
+    
+    # 1. Получаем все статьи из базы данных
+    # 2. Используем prefetch_related для оптимизации (чтобы не было N+1 запросов к тегам)
+    # 3. Сортируем по заголовку (так как поля published_at у нас нет)
+    articles = Article.objects.prefetch_related('tags').order_by('title')
+    
+    # Передаем статьи в контекст под ключом 'object_list' (стандартное имя для ListView/шаблонов)
+    context = {
+        'object_list': articles
+    }
+    
     return render(request, template, context)
